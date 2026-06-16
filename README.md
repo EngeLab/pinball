@@ -124,7 +124,7 @@ output directory.
 ### Hierarchical Query Descent (HQD)
 
 With `use_hqd: true`, attention is computed **coarse-to-fine** instead of densely. A query
-starts at the top of the hierarchy and *descends*: at level L3 it keeps the `hqd_topk_l3` most
+starts from conditioned l0 nodes, and crossattends with the compressed l3 representations at the top of the hierarchy and *descends*: at level L3 it keeps the `hqd_topk_l3` most
 relevant parent nodes, expands only their children into L2, keeps the `hqd_topk_l2` best of
 those, and so on down to the token level (`hqd_topk_l0`). Each token therefore attends to a
 small, adaptively-routed set of globally-relevant nodes rather than the whole sequence — keeping
