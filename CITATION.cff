@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Pinball: A Hierarchical Graph Transformer for Efficient Long-Context Sequence Modeling"
+abstract: >-
+  Pinball is a hierarchical graph transformer for language modeling. It builds a multi-level
+  graph over tokens and refines representations with cross-level message passing, decoupling
+  local computation from global information flow so that cost scales approximately linearly
+  with sequence length.
+authors:
+  - family-names: "van Bruggen"
+    given-names: "David"
+  - family-names: "Enge"
+    given-names: "Martin"
+license: GPL-3.0-or-later
+version: "0.1.0"
+date-released: "2026-06-12"
+keywords:
+  - hierarchical graph transformer
+  - long-context language modeling
+  - sparse attention
+  - sequence modeling
+url: "https://github.com/DavidvanBruggen/Pinball"
+repository-code: "https://github.com/DavidvanBruggen/Pinball"

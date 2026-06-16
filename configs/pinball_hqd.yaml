@@ -1,0 +1,50 @@
+# Pinball with Hierarchical Query Descent (HQD) enabled — coarse-to-fine sparse attention
+# that descends from top-level summaries down to L0 tokens via per-level top-k selection.
+
+model_type: pinball
+modality: text
+tokenizer_name: gpt2
+
+text_file: ./data/wikitext_combined.txt
+block_size: 1024
+batch_size: 8
+val_split: 0.01
+
+train_mode: ar
+learning_rate: 0.0001
+weight_decay: 0.1
+max_steps: 20000
+optimizer: muon_hybrid    # adamw | muon_hybrid (Muon on matrices, AdamW on 1D params)
+muon_lr_mult: 6.0
+ar_graph_causal: true     # causal hierarchy graph for autoregressive training
+
+hidden_dim: 768
+num_heads: 12
+num_refinement_layers: 12
+num_layers: [0, 0, 0, 0]
+internal_cycles: [0, 0, 0, 0]
+refinement_style: unified
+unified_refinement_cycles: 1
+l0_cycles: 0
+iterative_refinement_cycles: 0
+local_connectivity_window_size: 0
+compression_ratios: [16, 4, 4]
+overlap_ratios: [0.1, 0.2, 0.4]
+norm_type: layernorm
+dropout: 0.0
+
+attn_backend: flash
+qkv_sharing: separate
+
+# Hierarchical Query Descent
+use_hqd: true
+hqd_topk_l3: 4
+hqd_topk_l2: 4
+hqd_topk_l1: 4
+hqd_topk_l0: 64
+hqd_use_existing_zipper_projections: true   # reuse the zipper q/k projections
+
+local_attn_levels: [0, 1, 2, 3]
+local_attn_windows: [128, 16, 64, 128]
+l0_local_window: 128
+learn_edge_from_attention: false

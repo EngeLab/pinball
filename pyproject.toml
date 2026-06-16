@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pinball"
+version = "0.1.0"
+description = "Pinball — a hierarchical graph transformer for language modeling"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "torch>=2.1",
+    "torch-geometric>=2.4",
+    "transformers>=4.38",
+    "datasets>=2.16",
+    "numpy",
+    "pyyaml",
+    "tqdm",
+    "pytorch_optimizer>=3.0",  # Muon hybrid optimizer (optimizer: muon_hybrid)
+]
+
+[project.optional-dependencies]
+# Optional accelerated attention backend (attn_backend: flash). SDPA/PyG work without it.
+flash = ["flash-attn"]
+dev = ["pytest"]
+
+[project.scripts]
+pinball-train = "pinball.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]

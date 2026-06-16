@@ -1,0 +1,83 @@
+# Pinball hierarchical graph transformer — autoregressive LM on WikiText-103.
+# Friendly toggles (attn_backend / qkv_sharing / train_mode / use_hqd) expand to the
+# underlying flags in pinball.config.PinballConfig. See README for the full toggle table.
+
+model_type: pinball
+modality: text
+tokenizer_name: gpt2
+
+# Data — point this at your text file (WikiText-103 combined, FineWeb, etc.).
+text_file: ./data/wikitext_combined.txt
+block_size: 1024
+batch_size: 12
+val_split: 0.01
+
+# Training
+train_mode: ar            # ar | masked_diffusion
+learning_rate: 0.0001
+weight_decay: 0.1
+max_steps: 20000
+# Optimizer: adamw | muon_hybrid. muon_hybrid trains 2D+ weight matrices with Muon at
+# learning_rate * muon_lr_mult (RMS-matched to AdamW), and 1D params (embeddings, norms,
+# biases) with AdamW at the base LR — usually learns markedly faster than plain AdamW.
+optimizer: muon_hybrid
+muon_lr_mult: 6.0                 # Muon LR multiplier on the matrix param group
+muon_betas: [0.9, 0.95]          # AdamW betas for the 1D param group
+muon_adjust_lr_fn: match_rms_adamw
+# Epochs: an epoch is `samples_per_epoch` samples; validation + a generation follow each.
+# Set num_epochs to drive the run by epochs (it then sets the step budget); otherwise the
+# epoch count is derived from max_steps. (CLI: --epochs / --samples-per-epoch.)
+# num_epochs: 10
+samples_per_epoch: 25000
+gradient_accumulation_steps: 3   # accumulate grads over N batches before an optimizer step
+gradient_checkpointing: false    # trade compute for memory in the refinement stack
+# Periodic generation / checkpointing (in training batches; 0 = per-epoch / end only).
+# (CLI: --generate-every / --save-every / --checkpoint-dir.)
+generate_every: 0
+save_every: 0
+checkpoint_dir: ./checkpoints
+#log_every:             # emit the Step/EFF/Cache log lines every N steps (CLI: --log-every)
+# Resume: restores weights + optimizer + LR schedule + step/epoch counters and continues.
+# resume_from: ./checkpoints/pinball_final.pt   # (CLI: --resume)
+
+# AR graph connectivity — make the hierarchy graph causal for autoregressive training.
+# ar_graph_causal sets hier_ar_enable + l0_ar_enable together; the individual dials below
+# (any of them) can be set directly for fine-grained control.
+ar_graph_causal: true
+# hier_ar_enable: true            # level-wise edges are time-forward only
+# l0_ar_enable: true              # L0 intra-level edges are causal (time-forward only)
+# hier_ar_allow_same_time: true   # allow src_time == dst_time edges
+# enable_l0_parent_edges: false   # add L0->parent edges across levels
+# l0_parent_edges_bidirectional: false
+# ensure_l0_past_l1_edges: false  # guarantee each L0 node sees past L1 nodes
+# ensure_past_hier_edges_all_levels: false
+# long_range_distance: 3          # max graph hops for long-range edges
+
+# Core shape
+hidden_dim: 768
+num_heads: 12
+num_refinement_layers: 12
+num_layers: [0, 0, 0, 0]
+internal_cycles: [0, 0, 0, 0]
+refinement_style: unified
+unified_refinement_cycles: 1
+l0_cycles: 0
+iterative_refinement_cycles: 0
+local_connectivity_window_size: 0
+compression_ratios: [16, 4, 4]
+overlap_ratios: [0.5, 0.5, 0.5]
+norm_type: layernorm
+dropout: 0.0
+
+# Attention / hierarchy toggles
+attn_backend: flash        # pyg | flash | sdpa
+qkv_sharing: shared      # shared | separate
+use_hqd: false             # hierarchical query descent
+local_attn_levels: [0, 1, 2, 3]
+local_attn_windows: [128, 16, 64, 128]
+local_attn_causal_levels: [0, 1, 2, 3]
+l0_local_window: 128
+learn_edge_from_attention: false
+
+# Hierarchy auxiliary (reconstruction) loss
+use_aux_loss: false

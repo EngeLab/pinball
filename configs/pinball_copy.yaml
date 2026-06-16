@@ -1,0 +1,53 @@
+# Copy-task config — the cleanest proof that hierarchical message passing works.
+# The model must copy a marked source span to a destination span across a long gap;
+# near-perfect copy accuracy demonstrates the hierarchy moves information end-to-end.
+
+model_type: pinball
+modality: text
+tokenizer_name: gpt2
+
+text_file: ./data/wikitext_combined.txt
+block_size: 1024
+batch_size: 8
+val_split: 0.01
+
+train_mode: ar
+learning_rate: 0.0001
+weight_decay: 0.1
+max_steps: 5000
+optimizer: muon_hybrid    # adamw | muon_hybrid (Muon on matrices, AdamW on 1D params)
+muon_lr_mult: 6.0
+ar_graph_causal: true     # causal hierarchy graph for autoregressive training
+
+# Copy-task
+copy_task_enable: true
+copy_task_train_prob: 1.0
+copy_task_val_prob: 1.0
+copy_task_src_len_min: 8
+copy_task_src_len_max: 8
+copy_task_min_gap: 64
+copy_task_max_gap: 0
+lambda_copy_loss: 1.0
+
+hidden_dim: 768
+num_heads: 12
+num_refinement_layers: 12
+num_layers: [0, 0, 0, 0]
+internal_cycles: [0, 0, 0, 0]
+refinement_style: unified
+unified_refinement_cycles: 1
+l0_cycles: 0
+iterative_refinement_cycles: 0
+local_connectivity_window_size: 0
+compression_ratios: [16, 4, 4]
+overlap_ratios: [0.1, 0.2, 0.4]
+norm_type: layernorm
+dropout: 0.0
+
+attn_backend: flash
+qkv_sharing: separate
+use_hqd: false
+local_attn_levels: [0, 1, 2, 3]
+local_attn_windows: [128, 16, 64, 128]
+l0_local_window: 128
+learn_edge_from_attention: false

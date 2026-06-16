@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.eggs/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Tokenized text caches (written next to data files) & checkpoints
+*.pt
+*.bin
+*.ckpt
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
