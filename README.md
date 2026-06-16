@@ -1,5 +1,8 @@
 # Pinball, early preview (alpha release), things might break, work in progress.
 
+**Status:** active research prototype / work in progress.  
+The core hierarchy, training loop, configs, and baseline comparisons are being built out in public. Benchmarks, scaling plots, and ablations will be added as they become stable.
+
 **Pinball** is a hierarchical graph transformer for language and general sequence modeling. Instead of a flat
 sequence of tokens, it builds a multi-level graph — L0 tokens are compressed into coarser
 parent nodes (L1, L2, L3, …) — and refines representations with message passing across levels.
