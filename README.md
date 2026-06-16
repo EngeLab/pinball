@@ -16,7 +16,7 @@ approximately linearly with sequence length, enabling efficient modeling of subs
 These results suggest that hierarchical interaction structures provide a practical and generalizable alternative to full
 attention for long-context sequence modeling.
 
-This repository is a clean, minimal, reliably-running implementation: a small set of clear
+This repository is a clean, minimal, stable implementation: a small set of clear
 toggles, a config-driven trainer, and a transformer baseline for comparison.
 
 ---
@@ -29,7 +29,7 @@ A PyTorch Geometric optimized implementation of a Hierarchical Graph Transformer
 
 - **Unified Graph Structure**: A single connected graph for all hierarchy levels enables direct message passing between levels
 - **PyTorch Geometric Optimization**: Efficient graph operations with sparse tensor operations for better performance
-- **Advanced Positional Encoding**: Both rotary (sequence-aware) and Lagrangian (structure-aware) positional encodings
+- **Graph Aware Positional Encoding**: Both rotary (sequence-aware) and Lagrangian (structure-aware) positional encodings
 - **Level-Aware Attention**: Specially designed message passing that considers hierarchical structure
 - **Efficient Information Flow**: Cross-level connections that enable direct information exchange between different levels
 
@@ -91,10 +91,10 @@ model = build_model(cfg, tokenizer=tok, vocab_size=len(tok),
 
 ## Toggles
 
-Configs accept **friendly toggles** (which expand to the underlying flags) and/or the raw
-underlying names. Anything you don't set falls back to a sensible default.
+Configs accept toggles (which expand to the underlying flags) and/or the raw
+underlying names. Anything you don't set falls back to default.
 
-| Friendly toggle | Values | Expands to | What it does |
+| Toggle | Values | Expands to | What it does |
 |---|---|---|---|
 | `model_type` | `pinball` \| `transformer` | — | Pinball graph model or GPT-style baseline |
 | `attn_backend` | `pyg` \| `flash` \| `sdpa` | `l0_local_backend` | Local-attention kernel. `flash` needs CUDA + bf16/fp16; `sdpa` and `pyg` run anywhere |
@@ -106,7 +106,7 @@ underlying names. Anything you don't set falls back to a sensible default.
 | `grad_accum` | int | `gradient_accumulation_steps` | Accumulate grads over N batches per optimizer step |
 | `optimizer` | `adamw` \| `muon_hybrid` | optimizer construction | `muon_hybrid` trains 2D+ weight matrices with Muon at `learning_rate * muon_lr_mult` (RMS-matched to AdamW), 1D params (embeddings/norms/biases) with AdamW — usually learns notably faster. Tune with `muon_lr_mult`, `muon_betas`, `muon_adjust_lr_fn` |
 
-Useful underlying knobs: `hidden_dim`, `num_heads`, `num_refinement_layers`,
+Underlying knobs: `hidden_dim`, `num_heads`, `num_refinement_layers`,
 `compression_ratios` / `overlap_ratios` (hierarchy shape), `local_attn_windows` /
 `local_attn_levels` (windowed attention), `unified_refinement_cycles` (refinement passes),
 `hqd_topk_l0..l3` (HQD fan-out), `use_aux_loss` (hierarchy reconstruction auxiliary loss),
@@ -142,7 +142,7 @@ true` reuses the model's existing q/k projections so HQD adds no extra parameter
 | `transformer_wikitext.yaml` | GPT-style transformer baseline, same data/tokenizer |
 | `pinball_masked_diffusion.yaml` | Pinball with the masked-diffusion (denoising) objective |
 | `pinball_hqd.yaml` | Pinball with Hierarchical Query Descent enabled |
-| `pinball_copy.yaml` | Copy-task — the cleanest proof the hierarchy moves information end-to-end |
+| `pinball_copy.yaml` | Copy-task — test that the hierarchy moves information end-to-end |
 
 ---
 
