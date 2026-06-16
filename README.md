@@ -9,6 +9,7 @@ parent nodes (L1, L2, L3, …) — and refines representations with message pass
 This gives long-range reach at lower cost than dense attention, while a local windowed
 attention keeps fine-grained detail at L0. We demonstrate transformer-like performance 
 in small scale language modeling and DNA modeling tasks. At constant throughput and linear memory scaling behaviors.
+In internal preliminary experiments on WikiText103, Pinball reaches approximately the same validation perplexity as a matched GPT-style Transformer baseline under the same training setup (~19 PPL for both models). Full benchmark scripts, configs, and scaling plots will be added once finalized.
 
 By decoupling local computation from global information flow, the proposed architecture scales 
 approximately linearly with sequence length, enabling efficient modeling of substantially longer sequences.
