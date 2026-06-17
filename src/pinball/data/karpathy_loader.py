@@ -72,15 +72,35 @@ def create_karpathy_dataloaders(
             tokens = torch.load(token_path)
         else:
             logger.info(f"Reading raw text from {text_path}")
-            raw_text = Path(text_path).read_text(encoding="utf‑8")
             logger.info("Tokenising …")
-            tokens = tokenizer(
-                raw_text + tokenizer.eos_token,
-                return_tensors="pt",
-                add_special_tokens=False
-            ).input_ids[0]
+            # Tokenise in bounded character chunks and concatenate tensors, instead of
+            # reading the whole file into one string and tokenising in a single call.
+            # The single-call path builds a ~100M+ element Python int list (several GB)
+            # before the tensor, which OOMs low-RAM machines (e.g. Colab ~12 GB).
+            chunk_chars = 4_000_000  # ~4 MB of text per tokenizer call
+            parts = []
+            buf, buf_len = [], 0
+
+            def _flush(buf):
+                if not buf:
+                    return
+                ids = tokenizer("".join(buf), add_special_tokens=False).input_ids
+                if ids:
+                    parts.append(torch.tensor(ids, dtype=torch.long))
+
+            with open(text_path, "r", encoding="utf-8") as fh:
+                for line in fh:
+                    buf.append(line)
+                    buf_len += len(line)
+                    if buf_len >= chunk_chars:
+                        _flush(buf)
+                        buf, buf_len = [], 0
+            _flush(buf)
+            parts.append(torch.tensor([tokenizer.eos_token_id], dtype=torch.long))
+            tokens = torch.cat(parts) if parts else torch.zeros(0, dtype=torch.long)
+            del parts
             torch.save(tokens, token_path)
-            logger.info(f"Saved tokens → {token_path}")
+            logger.info(f"Saved {len(tokens):,} tokens → {token_path}")
 
         split = int(len(tokens) * (1 - val_split))
         train_tokens, val_tokens = tokens[:split], tokens[split:]
