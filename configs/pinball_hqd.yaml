@@ -70,5 +70,6 @@ hqd_use_existing_zipper_projections: true   # reuse the zipper q/k projections
 
 local_attn_levels: [0, 1, 2, 3]
 local_attn_windows: [16, 16, 64, 128]
+local_attn_causal_levels: [0, 1, 2, 3]
 l0_local_window: 128
 learn_edge_from_attention: false

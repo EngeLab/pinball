@@ -130,6 +130,10 @@ def main(argv=None) -> None:
     p.add_argument("--config", required=True, help="Path to a YAML config (see configs/).")
     p.add_argument("--text-file", default=None, help="Override the training text file.")
     p.add_argument("--device", default=None, help="Override device (cuda, cuda:0, cpu, ...).")
+    p.add_argument("--attn-backend", "--attn_backend", dest="attn_backend", default=None,
+                   choices=["pyg", "flash", "sdpa"],
+                   help="Local-attention backend (overrides config). Use 'sdpa' or 'pyg' when "
+                        "flash-attn is unavailable (e.g. Colab).")
     p.add_argument("--block-size", "--block_size", type=int, default=None, dest="block_size",
                    help="Sequence length (overrides config block_size).")
     p.add_argument("--batch-size", "--batch_size", type=int, default=None, dest="batch_size",
@@ -169,6 +173,8 @@ def main(argv=None) -> None:
         cfg.batch_size = args.batch_size
     if args.gradient_accumulation_steps is not None:
         cfg.gradient_accumulation_steps = args.gradient_accumulation_steps
+    if args.attn_backend is not None:
+        cfg.l0_local_backend = args.attn_backend
     device = _resolve_device(cfg)
 
     tokenizer = _build_tokenizer(cfg)
