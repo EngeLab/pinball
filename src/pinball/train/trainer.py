@@ -2277,7 +2277,17 @@ class EnhancedHierarchicalTrainer:
         self.log_interval = log_interval
         self.eval_interval = eval_interval
         self.mixed_precision = mixed_precision
-        self.use_bf16 = True  # Assume BF16 is desired if mixed precision is enabled
+        # Prefer bf16 only where the GPU supports it (Ampere sm_80+). On bf16-less GPUs
+        # (e.g. T4 / Turing sm_75) fall back to fp16, which then gets a GradScaler below.
+        self.use_bf16 = bool(
+            torch.cuda.is_available() and torch.cuda.is_bf16_supported()
+        )
+        if self.mixed_precision:
+            logger.info(
+                "Mixed precision autocast dtype: %s (bf16_supported=%s)",
+                "bfloat16" if self.use_bf16 else "float16",
+                bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported()),
+            )
         self.unified_refinement_cycles = unified_refinement_cycles
         self.progress_view = str(progress_view).lower()
         if self.progress_view not in {"full", "compact", "rotate"}:
