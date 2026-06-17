@@ -18,6 +18,8 @@ from tqdm import tqdm
 import math
 from typing import Any, Dict, Optional, Tuple
 
+from ..utils.amp import amp_dtype, bf16_supported
+
 
 logger = logging.getLogger(__name__)
 
@@ -2277,16 +2279,14 @@ class EnhancedHierarchicalTrainer:
         self.log_interval = log_interval
         self.eval_interval = eval_interval
         self.mixed_precision = mixed_precision
-        # Prefer bf16 only where the GPU supports it (Ampere sm_80+). On bf16-less GPUs
-        # (e.g. T4 / Turing sm_75) fall back to fp16, which then gets a GradScaler below.
-        self.use_bf16 = bool(
-            torch.cuda.is_available() and torch.cuda.is_bf16_supported()
-        )
+        # Prefer bf16 only where the GPU supports it NATIVELY (Ampere sm_80+). On bf16-less
+        # GPUs (e.g. T4 / Turing sm_75) fall back to fp16, which then gets a GradScaler below.
+        self.use_bf16 = bf16_supported()
         if self.mixed_precision:
             logger.info(
-                "Mixed precision autocast dtype: %s (bf16_supported=%s)",
+                "Mixed precision autocast dtype: %s (native_bf16=%s)",
                 "bfloat16" if self.use_bf16 else "float16",
-                bool(torch.cuda.is_available() and torch.cuda.is_bf16_supported()),
+                self.use_bf16,
             )
         self.unified_refinement_cycles = unified_refinement_cycles
         self.progress_view = str(progress_view).lower()
@@ -6389,7 +6389,7 @@ class EnhancedHierarchicalTrainer:
                 # Forward pass with masked input
                 def _val_amp_ctx():
                     return (
-                        torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+                        torch.autocast(device_type="cuda", dtype=amp_dtype("cuda"))
                         if use_flash_val_autocast
                         else nullcontext()
                     )
@@ -7083,7 +7083,7 @@ class EnhancedHierarchicalTrainer:
             with torch.no_grad():
                 def _gen_amp_ctx():
                     return (
-                        torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+                        torch.autocast(device_type="cuda", dtype=amp_dtype("cuda"))
                         if use_flash_gen_autocast
                         else nullcontext()
                     )

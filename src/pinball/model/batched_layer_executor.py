@@ -166,6 +166,7 @@ import torch
 from torch.utils.checkpoint import checkpoint
 from torch_geometric.loader import NeighborLoader
 import contextlib
+from ..utils.amp import amp_dtype
 
 class BatchedLayerExecutor_v1:
     def __init__(self, default_batch_size=1, pin_memory=True, num_workers=0, use_ckpt=False):
@@ -296,7 +297,7 @@ class BatchedLayerExecutor_v1:
             )
 
         use_amp = torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # cache level_offsets tensor on device for fast per-batch indexing
         level_offsets_dev = torch.as_tensor(getattr(data, "level_offsets", []), device=target_device)
@@ -493,7 +494,7 @@ class BatchedLayerExecutor:
 
         # AMP context
         use_amp = self.use_amp and torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # tiny wrapper (plays nice with checkpoint)
         def _call_layer(x_sub, edge_index, node_level, positions, edge_attr=None):
@@ -608,7 +609,7 @@ class BatchedLayerExecutor:
 
         # AMP context
         use_amp = self.use_amp and torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # level-aware RoPE positions cache
         level_offsets = getattr(data, "level_offsets", [])
@@ -762,7 +763,7 @@ class BatchedLayerExecutor:
 
         # AMP context
         use_amp = self.use_amp and torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # RoPE level-aware positions
         level_offsets = getattr(data, "level_offsets", [])
@@ -920,7 +921,7 @@ class BatchedLayerExecutor:
 
         # AMP context
         use_amp = self.use_amp and torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # level-aware RoPE positions (optional, safe fallback is positions=n_id)
         #level_offsets = getattr(data, "level_offsets", [])
@@ -1088,7 +1089,7 @@ class BatchedLayerExecutor:
 
         # AMP
         use_amp = self.use_amp and torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # level_offsets (for level-aware RoPE)
         level_offsets_dev = None
@@ -1373,7 +1374,7 @@ class BatchedLayerExecutor:
 
         # AMP
         use_amp = self.use_amp and torch.is_grad_enabled()
-        amp_ctx = torch.autocast(device_type=target_device.type, dtype=torch.bfloat16) if use_amp else contextlib.nullcontext()
+        amp_ctx = torch.autocast(device_type=target_device.type, dtype=amp_dtype(target_device.type)) if use_amp else contextlib.nullcontext()
 
         # level_offsets (for level-aware RoPE)
         level_offsets_dev = None

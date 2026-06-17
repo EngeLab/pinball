@@ -28,6 +28,7 @@ except ImportError:  # pragma: no cover - very old PyG
 import math
 from .positional_encoding import RotaryPositionalEncoding
 from .normalization import make_norm
+from ...utils.amp import bf16_supported
 from typing import Optional, Dict, Any, Tuple, List, Callable
 
 logger = logging.getLogger(__name__)
@@ -96,7 +97,7 @@ def _smoke_test_flash_attn(
     if not torch.cuda.is_available():
         return False
 
-    dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+    dtype = torch.bfloat16 if bf16_supported() else torch.float16
     device = torch.device("cuda", int(device_index))
     bsz, seqlen, num_heads, head_dim = 1, 64, 4, 64
 
@@ -201,7 +202,7 @@ def attention_forward(
     if backend in {"fa2", "fa3"} and flash_func is not None:
         orig_dtype = q.dtype
         if flash_dtype_cast and orig_dtype not in (torch.float16, torch.bfloat16):
-            work_dtype = torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16
+            work_dtype = torch.bfloat16 if bf16_supported() else torch.float16
             q_fa = q.to(dtype=work_dtype)
             k_fa = k.to(dtype=work_dtype)
             v_fa = v.to(dtype=work_dtype)
@@ -2693,7 +2694,7 @@ class HierarchicalMessagePassing(MessagePassing):
                     orig_dtype = q_var.dtype
                     if orig_dtype not in (torch.float16, torch.bfloat16):
                         if bool(getattr(self, "local_attn_flash_dtype_cast", False)):
-                            work_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
+                            work_dtype = torch.bfloat16 if bf16_supported() else torch.float16
                             q_var = q_var.to(dtype=work_dtype)
                             k_var = k_var.to(dtype=work_dtype)
                             v_var = v_var.to(dtype=work_dtype)
