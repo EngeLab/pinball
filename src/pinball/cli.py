@@ -130,6 +130,13 @@ def main(argv=None) -> None:
     p.add_argument("--config", required=True, help="Path to a YAML config (see configs/).")
     p.add_argument("--text-file", default=None, help="Override the training text file.")
     p.add_argument("--device", default=None, help="Override device (cuda, cuda:0, cpu, ...).")
+    p.add_argument("--block-size", "--block_size", type=int, default=None, dest="block_size",
+                   help="Sequence length (overrides config block_size).")
+    p.add_argument("--batch-size", "--batch_size", type=int, default=None, dest="batch_size",
+                   help="Batch size (overrides config batch_size).")
+    p.add_argument("--gradient-accumulation-steps", "--gradient_accumulation_steps", "--grad-accum",
+                   type=int, default=None, dest="gradient_accumulation_steps",
+                   help="Accumulate grads over N batches per optimizer step (overrides config).")
     p.add_argument("--max-steps", type=int, default=None, help="Total optimizer-step budget (overrides config).")
     p.add_argument("--epochs", type=int, default=None,
                    help="Number of epochs to train (overrides config num_epochs; otherwise derived from max-steps).")
@@ -156,6 +163,12 @@ def main(argv=None) -> None:
         cfg.device = args.device
     if args.text_file:
         cfg.text_file = args.text_file
+    if args.block_size is not None:
+        cfg.block_size = args.block_size
+    if args.batch_size is not None:
+        cfg.batch_size = args.batch_size
+    if args.gradient_accumulation_steps is not None:
+        cfg.gradient_accumulation_steps = args.gradient_accumulation_steps
     device = _resolve_device(cfg)
 
     tokenizer = _build_tokenizer(cfg)
