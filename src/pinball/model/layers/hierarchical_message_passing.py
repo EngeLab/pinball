@@ -11,7 +11,20 @@ import time
 from functools import lru_cache
 from torch_geometric.nn import MessagePassing
 from torch_geometric.utils import softmax
-from torch_scatter import scatter_add, scatter_max
+# scatter_add is the only torch_scatter op this module uses. Prefer PyG's native
+# scatter (pure PyTorch, no compiled extension) so installs don't need torch-scatter
+# wheels; fall back to torch_scatter if present.
+try:
+    from torch_geometric.utils import scatter as _pyg_scatter
+
+    def scatter_add(src, index, dim=0, out=None, dim_size=None):
+        res = _pyg_scatter(src, index, dim=dim, dim_size=dim_size, reduce="sum")
+        if out is not None:
+            out = out + res
+            return out
+        return res
+except ImportError:  # pragma: no cover - very old PyG
+    from torch_scatter import scatter_add
 import math
 from .positional_encoding import RotaryPositionalEncoding
 from .normalization import make_norm

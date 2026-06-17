@@ -26,7 +26,7 @@ def check_pyg_compatibility():
         bool: True if PyG is available and compatible, False otherwise
     """
     if not is_pyg_available():
-        logger.warning("torch_scatter not found. Install with: pip install torch-scatter")
+        logger.warning("torch_geometric not found. Install with: pip install torch-geometric")
         return False
         
 
