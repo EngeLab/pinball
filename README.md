@@ -64,8 +64,9 @@ work out of the box; `flash` is optional.
 **Colab:**
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/DavidvanBruggen/pinball/blob/main/pinball_colab_run.ipynb)
 
-Click the badge to open the runnable notebook in your own Google Colab account 
-select a GPU runtime ( e.g. a free T4) > then run all.
+Click the badge to open the runnable notebook in your own Google Colab account.
+
+Select a GPU runtime ( e.g. a free T4) > then run all.
 
 **Local run:**
 
